@@ -1,6 +1,15 @@
+#CUDA generated files
 *.i
 *.ii
 *.gpu
 *.ptx
 *.cubin
 *.fatbin
+
+#VS generated files
+*.sln
+*.sdf
+*.opensdf
+*.vcxproj
+*.tlog
+*.deps

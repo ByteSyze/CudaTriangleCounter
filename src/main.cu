@@ -55,5 +55,23 @@ int main()
 		}
 	}
 
+	printf("%d Valid Points\n", i);
+
     return 0;
 }
+
+/**
+*
+* Checks h_invalidPoints for a corresponding point, represented as a uint2.
+*
+* */
+bool isInvalidPoint(uint2 p)
+{
+	for each(uint2 point in h_invalidPoints)
+	{
+		if (point.x == p.x && point.y == p.y)
+			return true;
+	}
+	return false;
+}
+

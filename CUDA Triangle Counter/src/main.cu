@@ -15,8 +15,45 @@
 #include "device_launch_parameters.h"
 
 #include <stdio.h>
+#include <stdlib.h>
+#include "main.h"
+
+__global__ void countTriangles(uint2 *validPoints, int *count)
+{
+	//TODO
+}
 
 int main()
 {
+	int i = 0;
+	int h_count = 0;
+
+	int *h_countPtr = &h_count;
+	int *d_count;
+
+	//Calculate the size of the array of valid points.
+	size_t size = (GRID_HEIGHT*GRID_WIDTH*sizeof(uint2) - sizeof(h_invalidPoints));
+
+	uint2 *h_validPoints = (uint2 *)malloc(size);
+	uint2 *d_validPoints;
+
+	cudaMalloc((void **)&d_validPoints, size);
+	cudaMalloc((void **)&d_count, sizeof(int));
+
+	//Generate an array of all valid points within the bounds defined by GRID_WIDTH and GRID_HEIGHT.
+	for (unsigned int x = 0; x < GRID_WIDTH; x++)
+	{
+		for (unsigned int y = 0; y < GRID_HEIGHT; y++)
+		{
+			uint2 p = { x, y };
+
+			if (!isInvalidPoint(p))
+			{
+				h_validPoints[i] = p;
+				i += 1;
+			}
+		}
+	}
+
     return 0;
 }

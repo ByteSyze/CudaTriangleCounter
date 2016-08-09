@@ -15,8 +15,8 @@
 #define GRID_WIDTH 4
 #define GRID_HEIGHT 4
 
-__global__ void countTriangles(uint2 *validPoints, int *count);
-
 const uint2 h_invalidPoints[] = { { 0, 0 } };
+
+__global__ void countTriangles(uint2 *validPoints, int *count);
 
 bool isInvalidPoint(uint2 p);

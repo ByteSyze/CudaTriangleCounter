@@ -20,7 +20,24 @@
 
 __global__ void countTriangles(uint2 *validPoints, int *count)
 {
-	//TODO
+	/* Only allow operations on blocks where x < y < z, to prevent repeat triangles*/
+	if (blockIdx.x > blockIdx.y || blockIdx.y > blockIdx.z || blockIdx.x > blockIdx.z)
+		return;
+
+	uint2 x, y, z;
+	x = validPoints[blockIdx.x];
+	y = validPoints[blockIdx.y];
+	z = validPoints[blockIdx.z];
+
+	/*Check if the points are coplanar.*/
+	if ((x.x == y.x || x.y == y.y) && (y.x == z.x || y.y == z.y) && (x.x == z.x || x.y == z.y))
+		return;
+	/*Check for any coincident points.*/
+	if ((x.x == y.x && x.y == y.y) || (y.x == z.x && y.y == z.y) || (x.x == z.x && x.y == z.y))
+		return;
+
+	/*If the thread makes it this far, then we have a triangle that obeys the laws of geometry!*/
+	atomicAdd(count, 1);
 }
 
 int main()
@@ -33,6 +50,7 @@ int main()
 
 	//Calculate the size of the array of valid points.
 	size_t size = (GRID_HEIGHT*GRID_WIDTH*sizeof(uint2) - sizeof(h_invalidPoints));
+	dim3 gridSize(size / sizeof(uint2), size / sizeof(uint2), size / sizeof(uint2));
 
 	uint2 *h_validPoints = (uint2 *)malloc(size);
 	uint2 *d_validPoints;
@@ -55,7 +73,26 @@ int main()
 		}
 	}
 
-	printf("%d Valid Points\n", i);
+	printf("%d Valid Points.\n", i);
+
+	/*Copy the valid points in the grid over to the device.*/
+	cudaMemcpy(d_validPoints, h_validPoints, size, cudaMemcpyHostToDevice);
+	cudaMemcpy(d_count, h_countPtr, size, cudaMemcpyHostToDevice);
+
+	countTriangles<<<gridSize, 1>>>(d_validPoints, d_count);
+
+	/*Wait for the kernel to finish*/
+	cudaDeviceSynchronize();
+
+	/*Let's see how many triangles we found!*/
+	cudaMemcpy(h_countPtr, d_count, sizeof(int), cudaMemcpyDeviceToHost);
+
+	printf("%d valid triangles.\n", h_count);
+
+	free(h_validPoints);
+
+	cudaFree(d_validPoints);
+	cudaFree(d_count);
 
     return 0;
 }
